@@ -39,41 +39,60 @@ resource "oci_core_route_table" "bike_rt" {
   }
 }
 
-# 4. Security List (방화벽 규칙) 🌟 중요!
+# 4. Security List (방화벽 규칙)
 resource "oci_core_security_list" "bike_sl" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.bike_vcn.id
   display_name   = "bike_security_list"
 
-  egress_security_rules { # 밖으로 나가는 트래픽 허용
+  egress_security_rules {
     destination = "0.0.0.0/0"
     protocol    = "all"
   }
 
-  ingress_security_rules { # SSH (22)
-    protocol = "6" # TCP
-    source   = "0.0.0.0/0"
-    tcp_options { min = 22; max = 22 }
-  }
-  ingress_security_rules { # Airflow (8080)
+  ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 8080; max = 8080 }
+    tcp_options {
+      min = 22
+      max = 22
+    }
   }
-  ingress_security_rules { # Spark UI (8081)
+
+  ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 8081; max = 8081 }
+    tcp_options {
+      min = 8080
+      max = 8080
+    }
   }
-  ingress_security_rules { # MinIO Console (9001)
+
+  ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 9001; max = 9001 }
+    tcp_options {
+      min = 8081
+      max = 8081
+    }
   }
-  ingress_security_rules { # Streamlit (8501)
+
+  ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 8501; max = 8501 }
+    tcp_options {
+      min = 9001
+      max = 9001
+    }
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = "0.0.0.0/0"
+    tcp_options {
+      min = 8501
+      max = 8501
+    }
   }
 }
 
