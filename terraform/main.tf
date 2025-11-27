@@ -108,12 +108,12 @@ resource "oci_core_subnet" "bike_subnet" {
 
 # 6. Ubuntu ARM 이미지 찾기 (자동)
 data "oci_core_images" "ubuntu_arm" {
-  compartment_id   = var.compartment_ocid
-  operating_system = "Canonical Ubuntu"
+  compartment_id           = var.compartment_ocid
+  operating_system         = "Canonical Ubuntu"
   operating_system_version = "22.04"
-  shape            = "VM.Standard.A1.Flex"
-  sort_by          = "TIMECREATED"
-  sort_order       = "DESC"
+  shape                    = "VM.Standard.A1.Flex"
+  sort_by                  = "TIMECREATED"
+  sort_order               = "DESC"
 }
 
 # 7. Compute Instance 생성 (VM) 🌟 핵심
@@ -124,8 +124,8 @@ resource "oci_core_instance" "bike_server" {
   display_name        = "seoul_bike_platform"
 
   shape_config {
-    ocpus         = 4   # 🌟 무료 티어 최대치
-    memory_in_gbs = 24  # 🌟 무료 티어 최대치
+    ocpus         = 4  # 🌟 무료 티어 최대치
+    memory_in_gbs = 24 # 🌟 무료 티어 최대치
   }
 
   create_vnic_details {
