@@ -63,7 +63,7 @@ resource "oci_core_security_list" "bike_sl" {
       max = 22
     }
   }
-  
+
   # Streamlit (8501) - 혹시 몰라 열어둠
   ingress_security_rules {
     protocol = "6"
