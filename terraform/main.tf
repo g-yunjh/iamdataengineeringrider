@@ -1,3 +1,7 @@
+data "oci_identity_availability_domains" "ads" {
+  compartment_id = var.tenancy_ocid
+}
+
 terraform {
   required_providers {
     oci = {
@@ -118,7 +122,7 @@ data "oci_core_images" "ubuntu_arm" {
 
 # 7. Compute Instance 생성 (VM) 🌟 핵심
 resource "oci_core_instance" "bike_server" {
-  availability_domain = var.availability_domain
+  availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   compartment_id      = var.compartment_ocid
   shape               = "VM.Standard.A1.Flex"
   display_name        = "seoul_bike_platform"
