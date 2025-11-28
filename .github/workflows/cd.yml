@@ -1,0 +1,42 @@
+name: CD (Deploy to OCI)
+
+on:
+  push:
+    branches: [ "main" ]
+    # 문서나 설정 파일 변경 시에는 배포 건너뛰기
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'streamlit/**'  # Streamlit 코드는 Streamlit Cloud가 배포하므로 OCI 배포 제외
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to OCI Instance
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.OCI_HOST_IP }}
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY }}
+          script: |
+            # 1. 프로젝트 폴더 확인 및 이동
+            if [ ! -d "rider-de" ]; then
+              git clone https://github.com/${{ github.repository }}.git rider-de
+            fi
+            
+            cd rider-de
+            
+            # 2. 최신 코드로 업데이트
+            git pull origin main
+            
+            # 3. Worker 컨테이너 재배포
+            # (Streamlit 컨테이너는 띄우지 않고 worker만 실행)
+            docker-compose up -d --build worker
+            
+            # 4. 불필요한 이미지 정리 (디스크 용량 확보)
+            docker image prune -f
