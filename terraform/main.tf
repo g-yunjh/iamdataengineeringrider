@@ -1,7 +1,3 @@
-data "oci_identity_availability_domains" "ads" {
-  compartment_id = var.tenancy_ocid
-}
-
 terraform {
   required_providers {
     oci = {
@@ -19,14 +15,19 @@ provider "oci" {
   region           = var.region
 }
 
-# 1. VCN (가상 네트워크) 생성
+# AD 자동 검색
+data "oci_identity_availability_domains" "ads" {
+  compartment_id = var.tenancy_ocid
+}
+
+# 1. VCN
 resource "oci_core_vcn" "bike_vcn" {
   compartment_id = var.compartment_ocid
   cidr_block     = "10.0.0.0/16"
-  display_name   = "seoul_bike_vcn"
+  display_name   = "seoul_bike_vcn_amd"
 }
 
-# 2. Internet Gateway (인터넷 연결)
+# 2. Internet Gateway
 resource "oci_core_internet_gateway" "bike_ig" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.bike_vcn.id
@@ -43,7 +44,7 @@ resource "oci_core_route_table" "bike_rt" {
   }
 }
 
-# 4. Security List (방화벽 규칙)
+# 4. Security List
 resource "oci_core_security_list" "bike_sl" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.bike_vcn.id
@@ -62,34 +63,8 @@ resource "oci_core_security_list" "bike_sl" {
       max = 22
     }
   }
-
-  ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
-    tcp_options {
-      min = 8080
-      max = 8080
-    }
-  }
-
-  ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
-    tcp_options {
-      min = 8081
-      max = 8081
-    }
-  }
-
-  ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
-    tcp_options {
-      min = 9001
-      max = 9001
-    }
-  }
-
+  
+  # Streamlit (8501) - 혹시 몰라 열어둠
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
@@ -100,37 +75,32 @@ resource "oci_core_security_list" "bike_sl" {
   }
 }
 
-# 5. Subnet 생성
+# 5. Subnet
 resource "oci_core_subnet" "bike_subnet" {
   cidr_block        = "10.0.1.0/24"
   compartment_id    = var.compartment_ocid
   vcn_id            = oci_core_vcn.bike_vcn.id
   route_table_id    = oci_core_route_table.bike_rt.id
   security_list_ids = [oci_core_security_list.bike_sl.id]
-  display_name      = "bike_subnet"
+  display_name      = "bike_subnet_amd"
 }
 
-# 6. Ubuntu ARM 이미지 찾기 (자동)
-data "oci_core_images" "ubuntu_arm" {
+# 6. Image (AMD Ubuntu)
+data "oci_core_images" "ubuntu_amd" {
   compartment_id           = var.compartment_ocid
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "22.04"
-  shape                    = "VM.Standard.A1.Flex"
+  shape                    = "VM.Standard.E2.1.Micro"
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 }
 
-# 7. Compute Instance 생성 (VM) 🌟 핵심
+# 7. Instance (AMD 1GB)
 resource "oci_core_instance" "bike_server" {
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   compartment_id      = var.compartment_ocid
-  shape               = "VM.Standard.A1.Flex"
-  display_name        = "seoul_bike_platform"
-
-  shape_config {
-    ocpus         = 4  # 🌟 무료 티어 최대치
-    memory_in_gbs = 24 # 🌟 무료 티어 최대치
-  }
+  shape               = "VM.Standard.E2.1.Micro"
+  display_name        = "seoul_bike_platform_amd"
 
   create_vnic_details {
     subnet_id        = oci_core_subnet.bike_subnet.id
@@ -139,7 +109,7 @@ resource "oci_core_instance" "bike_server" {
 
   source_details {
     source_type = "image"
-    source_id   = data.oci_core_images.ubuntu_arm.images[0].id
+    source_id   = data.oci_core_images.ubuntu_amd.images[0].id
   }
 
   metadata = {
@@ -147,7 +117,6 @@ resource "oci_core_instance" "bike_server" {
   }
 }
 
-# 출력: 생성된 VM의 공인 IP
 output "public_ip" {
   value = oci_core_instance.bike_server.public_ip
 }
