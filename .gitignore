@@ -1,33 +1,20 @@
-# 1. Secrets
+# Secrets
 .env
 .env.*
 *.key
 *.pem
 *.pub
-id_rsa
 
-# 2. Terraform related
+# Terraform
 .terraform/
 *.tfstate
 *.tfstate.backup
 *.tfvars
-.terraform.lock.hcl
 
-# 3. Python related
+# Python
 __pycache__/
 *.py[cod]
 venv/
-.venv/
-env/
 
-# 4. Data folders (Exclude local test data)
-postgres_data/
-minio_data/
-data/*.csv
-data/*.parquet
-data/*.json
-
-# 5. OS and IDE configuration files
-.DS_Store
-.idea/
-.vscode/
+# Streamlit
+.streamlit/

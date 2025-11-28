@@ -5,10 +5,9 @@ services:
     build: .
     container_name: bike_worker
     restart: always
-    # .env 파일에 있는 API KEY들을 컨테이너 안으로 주입
+    # .env 파일 로드
     env_file:
       - .env
-    # 코드 수정 시 바로 반영되도록 볼륨 마운트
+    # 코드 수정 시 재빌드 없이 반영되도록 볼륨 연결
     volumes:
       - ./scripts:/app/scripts
-      - ./data:/app/data

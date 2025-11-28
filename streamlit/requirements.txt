@@ -1,6 +1,5 @@
 streamlit
 pandas
-pydeck
 psycopg2-binary
 sqlalchemy
-duckdb
+pydeck
